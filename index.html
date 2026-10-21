@@ -36,7 +36,7 @@ input[type=range]{display:block;width:100%;height:34px;accent-color:#ff1717;touc
 <body>
 <div id="app"><div id="clock" class="s4">00:00</div></div>
 <button id="reopen" aria-label="Instellingen openen">Instellingen</button>
-<div id="settings">
+<div id="settings" class="hidden">
  <div class="card">
   <h1>Nachtklok instellen</h1>
   <p class="small">Kies een formaat en helderheid. Tik daarna op ‘Klaar’. Je ziet dan alleen de tijd.</p>
@@ -59,22 +59,39 @@ input[type=range]{display:block;width:100%;height:34px;accent-color:#ff1717;touc
  const clock=document.getElementById('clock');
  const settings=document.getElementById('settings');
  const bright=document.getElementById('bright');
+ const STORAGE_KEY='nachtklok-instellingen-v1';
+ const defaults={size:'s4',brightness:'0.65',color:'#b80e0e'};
+ let state={...defaults};
+ function applyState(){
+   clock.classList.remove('s1','s2','s3','s4');
+   clock.classList.add(state.size);
+   document.documentElement.style.setProperty('--brightness',state.brightness);
+   document.documentElement.style.setProperty('--red',state.color);
+   bright.value=state.brightness;
+   document.querySelectorAll('button[data-size]').forEach(b=>b.classList.toggle('active',b.dataset.size===state.size));
+   document.querySelectorAll('button[data-color]').forEach(b=>b.classList.toggle('active',b.dataset.color===state.color));
+ }
+ function saveState(){
+   try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){}
+ }
+ function loadState(){
+   try{
+     const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
+     if(saved && ['s1','s2','s3','s4'].includes(saved.size) && Number(saved.brightness)>=0.03 && Number(saved.brightness)<=1 && ['#ff1717','#ff4a4a','#b80e0e'].includes(saved.color)) state={...defaults,...saved};
+   }catch(e){}
+   applyState();
+ }
  function tick(){const d=new Date();clock.textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
  tick();window.setInterval(tick,1000);
+ loadState();
  document.querySelectorAll('button[data-size]').forEach(function(b){
-   b.addEventListener('click',function(){
-     clock.classList.remove('s1','s2','s3','s4'); clock.classList.add(b.getAttribute('data-size'));
-     document.querySelectorAll('button[data-size]').forEach(function(x){x.classList.toggle('active',x===b)});
-   });
+   b.addEventListener('click',function(){state.size=b.dataset.size;applyState();saveState();});
  });
- bright.addEventListener('input',function(){document.documentElement.style.setProperty('--brightness',bright.value)});
+ bright.addEventListener('input',function(){state.brightness=bright.value;applyState();saveState();});
  document.querySelectorAll('button[data-color]').forEach(function(b){
-   b.addEventListener('click',function(){
-     document.documentElement.style.setProperty('--red',b.getAttribute('data-color'));
-     document.querySelectorAll('button[data-color]').forEach(function(x){x.classList.toggle('active',x===b)});
-   });
+   b.addEventListener('click',function(){state.color=b.dataset.color;applyState();saveState();});
  });
- document.getElementById('hide').addEventListener('click',function(){settings.classList.add('hidden')});
+ document.getElementById('hide').addEventListener('click',function(){saveState();settings.classList.add('hidden');});
  document.getElementById('reopen').addEventListener('click',function(){settings.classList.remove('hidden')});
  document.getElementById('app').addEventListener('click',function(){if(settings.classList.contains('hidden'))settings.classList.remove('hidden')});
  document.getElementById('fullscreen').addEventListener('click',function(){
