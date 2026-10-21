@@ -29,13 +29,13 @@ input[type=range]{display:block;width:100%;height:34px;accent-color:#ff1717;touc
 .actions{display:flex;gap:8px;margin-top:17px}
 .actions button{flex:1}
 .small{font-size:12px;line-height:1.4;color:#999}
-#reopen{position:fixed;z-index:4;right:5px;top:5px;width:44px;height:44px;opacity:.01;padding:0;border:0}
+#reopen{position:fixed;z-index:4;right:8px;top:8px;width:42px;height:42px;opacity:.72;padding:0;border:1px solid #692020;border-radius:50%;background:#160606;color:#ff4242;font-size:20px;display:none;align-items:center;justify-content:center}
 @media(orientation:portrait){#clock{font-size:clamp(58px,18vw,150px)}#clock.s4{font-size:clamp(70px,21vw,190px)}}
 </style>
 </head>
 <body>
 <div id="app"><div id="clock" class="s4">00:00</div></div>
-<button id="reopen" aria-label="Instellingen openen">Instellingen</button>
+<button id="reopen" aria-label="Instellingen openen" title="Instellingen openen">⚙</button>
 <div id="settings" class="hidden">
  <div class="card">
   <h1>Nachtklok instellen</h1>
@@ -51,7 +51,7 @@ input[type=range]{display:block;width:100%;height:34px;accent-color:#ff1717;touc
    <button type="button" data-color="#ff1717" class="active">Rood</button><button type="button" data-color="#ff4a4a">Lichtrood</button><button type="button" data-color="#b80e0e">Donkerrood</button>
   </div>
   <div class="actions"><button type="button" id="hide">Klaar — alleen cijfers</button><button type="button" id="fullscreen">Volledig scherm</button></div>
-  <p class="small">Om de instellingen terug te krijgen: tik eenmaal op het klokscherm. Zet je iPhone liggend op een standaard.</p>
+  <p class="small">Om instellingen te wijzigen: tik op het klokscherm. Het tandwiel verschijnt kort rechtsboven; tik daarop. Zet je iPhone liggend op een standaard.</p>
  </div>
 </div>
 <script>
@@ -96,8 +96,28 @@ input[type=range]{display:block;width:100%;height:34px;accent-color:#ff1717;touc
  document.querySelectorAll('button[data-color]').forEach(function(b){
    b.addEventListener('click',function(){state.color=b.dataset.color;applyState();saveState();});
  });
- document.getElementById('hide').addEventListener('click',function(){saveState();settings.classList.add('hidden');});
- document.getElementById('reopen').addEventListener('click',function(){settings.classList.remove('hidden')});
+ const reopenButton=document.getElementById('reopen');
+ const clockApp=document.getElementById('app');
+ let gearTimer=null;
+ clockApp.addEventListener('click',function(e){
+   if(!settings.classList.contains('hidden')) return;
+   if(e.target===reopenButton) return;
+   reopenButton.style.display='flex';
+   if(gearTimer) clearTimeout(gearTimer);
+   gearTimer=setTimeout(function(){reopenButton.style.display='none';},4000);
+ });
+ document.getElementById('hide').addEventListener('click',function(){
+   saveState();
+   settings.classList.add('hidden');
+   reopenButton.style.display='none';
+   if(gearTimer) clearTimeout(gearTimer);
+ });
+ reopenButton.addEventListener('click',function(e){
+   e.stopPropagation();
+   if(gearTimer) clearTimeout(gearTimer);
+   reopenButton.style.display='none';
+   settings.classList.remove('hidden');
+ });
  document.getElementById('fullscreen').addEventListener('click',function(){
    var el=document.documentElement;
    if(el.requestFullscreen){var promise=el.requestFullscreen();if(promise&&promise.catch)promise.catch(function(){});}
