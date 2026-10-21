@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>Nachtklok</title>
+<style>
+:root{color-scheme:dark;--red:#ff1717;--brightness:.65}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,sans-serif}
+body{min-height:100dvh;overflow:hidden}
+#app{height:100dvh;width:100vw;background:#000;display:flex;align-items:center;justify-content:center;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+#clock{color:var(--red);opacity:var(--brightness);font-family:"Courier New",monospace;font-size:clamp(72px,22vw,310px);font-weight:700;line-height:1;letter-spacing:.01em;white-space:nowrap;font-variant-numeric:tabular-nums;text-shadow:0 0 6px var(--red),0 0 20px var(--red)}
+#clock.s1{font-size:clamp(42px,12vw,150px)}
+#clock.s2{font-size:clamp(58px,16vw,220px)}
+#clock.s3{font-size:clamp(76px,21vw,280px)}
+#clock.s4{font-size:clamp(90px,25vw,340px)}
+#settings{position:fixed;z-index:5;inset:0;background:rgba(0,0,0,.97);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}
+#settings.hidden{display:none}
+.card{width:min(100%,440px);border:1px solid #411313;border-radius:20px;padding:18px;background:#080202}
+h1{font-size:22px;margin:0 0 12px;color:#ff3939}
+h2{font-size:14px;color:#ff5555;margin:15px 0 8px}
+.row{display:flex;gap:7px}
+button{border:1px solid #692020;background:#160606;color:#ff4242;border-radius:12px;padding:11px 8px;font-size:14px;font-weight:600;cursor:pointer;touch-action:manipulation}
+.row button{flex:1}
+button.active{background:#ff1717;color:#120000;border-color:#ff1717}
+input[type=range]{display:block;width:100%;height:34px;accent-color:#ff1717;touch-action:pan-x}
+.actions{display:flex;gap:8px;margin-top:17px}
+.actions button{flex:1}
+.small{font-size:12px;line-height:1.4;color:#999}
+#reopen{position:fixed;z-index:4;right:5px;top:5px;width:44px;height:44px;opacity:.01;padding:0;border:0}
+@media(orientation:portrait){#clock{font-size:clamp(58px,18vw,150px)}#clock.s4{font-size:clamp(70px,21vw,190px)}}
+</style>
+</head>
+<body>
+<div id="app"><div id="clock" class="s4">00:00</div></div>
+<button id="reopen" aria-label="Instellingen openen">Instellingen</button>
+<div id="settings">
+ <div class="card">
+  <h1>Nachtklok instellen</h1>
+  <p class="small">Kies een formaat en helderheid. Tik daarna op ‘Klaar’. Je ziet dan alleen de tijd.</p>
+  <h2>Cijfergrootte</h2>
+  <div class="row" id="sizes">
+   <button type="button" data-size="s1">Klein</button><button type="button" data-size="s2">Middel</button><button type="button" data-size="s3">Groot</button><button type="button" data-size="s4" class="active">XL</button>
+  </div>
+  <h2>Helderheid</h2>
+  <input id="bright" type="range" min="0.03" max="1" step="0.01" value="0.65" aria-label="Helderheid">
+  <h2>Kleur</h2>
+  <div class="row" id="colors">
+   <button type="button" data-color="#ff1717" class="active">Rood</button><button type="button" data-color="#ff4a4a">Lichtrood</button><button type="button" data-color="#b80e0e">Donkerrood</button>
+  </div>
+  <div class="actions"><button type="button" id="hide">Klaar — alleen cijfers</button><button type="button" id="fullscreen">Volledig scherm</button></div>
+  <p class="small">Om de instellingen terug te krijgen: tik eenmaal op het klokscherm. Zet je iPhone liggend op een standaard.</p>
+ </div>
+</div>
+<script>
+(function(){
+ const clock=document.getElementById('clock');
+ const settings=document.getElementById('settings');
+ const bright=document.getElementById('bright');
+ function tick(){const d=new Date();clock.textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+ tick();window.setInterval(tick,1000);
+ document.querySelectorAll('button[data-size]').forEach(function(b){
+   b.addEventListener('click',function(){
+     clock.classList.remove('s1','s2','s3','s4'); clock.classList.add(b.getAttribute('data-size'));
+     document.querySelectorAll('button[data-size]').forEach(function(x){x.classList.toggle('active',x===b)});
+   });
+ });
+ bright.addEventListener('input',function(){document.documentElement.style.setProperty('--brightness',bright.value)});
+ document.querySelectorAll('button[data-color]').forEach(function(b){
+   b.addEventListener('click',function(){
+     document.documentElement.style.setProperty('--red',b.getAttribute('data-color'));
+     document.querySelectorAll('button[data-color]').forEach(function(x){x.classList.toggle('active',x===b)});
+   });
+ });
+ document.getElementById('hide').addEventListener('click',function(){settings.classList.add('hidden')});
+ document.getElementById('reopen').addEventListener('click',function(){settings.classList.remove('hidden')});
+ document.getElementById('app').addEventListener('click',function(){if(settings.classList.contains('hidden'))settings.classList.remove('hidden')});
+ document.getElementById('fullscreen').addEventListener('click',function(){
+   var el=document.documentElement;
+   if(el.requestFullscreen){var promise=el.requestFullscreen();if(promise&&promise.catch)promise.catch(function(){});}
+ });
+})();
+</script>
+</body>
+</html>
