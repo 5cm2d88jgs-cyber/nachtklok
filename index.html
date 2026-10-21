@@ -75,11 +75,16 @@ input[type=range]{display:block;width:100%;height:34px;accent-color:#ff1717;touc
    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){}
  }
  function loadState(){
+   let hasSaved=false;
    try{
      const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
-     if(saved && ['s1','s2','s3','s4'].includes(saved.size) && Number(saved.brightness)>=0.03 && Number(saved.brightness)<=1 && ['#ff1717','#ff4a4a','#b80e0e'].includes(saved.color)) state={...defaults,...saved};
+     if(saved && ['s1','s2','s3','s4'].includes(saved.size) && Number(saved.brightness)>=0.03 && Number(saved.brightness)<=1 && ['#ff1717','#ff4a4a','#b80e0e'].includes(saved.color)) {
+       state={...defaults,...saved};
+       hasSaved=true;
+     }
    }catch(e){}
    applyState();
+   if(!hasSaved) settings.classList.remove('hidden');
  }
  function tick(){const d=new Date();clock.textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
  tick();window.setInterval(tick,1000);
@@ -93,7 +98,6 @@ input[type=range]{display:block;width:100%;height:34px;accent-color:#ff1717;touc
  });
  document.getElementById('hide').addEventListener('click',function(){saveState();settings.classList.add('hidden');});
  document.getElementById('reopen').addEventListener('click',function(){settings.classList.remove('hidden')});
- document.getElementById('app').addEventListener('click',function(){if(settings.classList.contains('hidden'))settings.classList.remove('hidden')});
  document.getElementById('fullscreen').addEventListener('click',function(){
    var el=document.documentElement;
    if(el.requestFullscreen){var promise=el.requestFullscreen();if(promise&&promise.catch)promise.catch(function(){});}
